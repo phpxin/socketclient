@@ -11,8 +11,8 @@ SRCF = ./src/
 
 BINF = ./bin/
 
-chatserver: ${OUTPUTF}main.o ${OUTPUTF}strutil.o
-	${CC} ${CFLAGS} -o ${BINF}chatclient ${OUTPUTF}main.o ${OUTPUTF}strutil.o
+chatserver: ${OUTPUTF}main.o ${OUTPUTF}strutil.o ${OUTPUTF}action.o
+	${CC} ${CFLAGS} -o ${BINF}chatclient ${OUTPUTF}main.o ${OUTPUTF}strutil.o ${OUTPUTF}action.o
 
 #create all c to o
 ${OUTPUTF}%.o: ${SRCF}%.c
