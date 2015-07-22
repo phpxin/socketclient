@@ -1,18 +1,23 @@
 all: chatserver
 
 CC = gcc
-CFLAGS = -g -Wall -ansi -D_REENTRANT
+CFLAGS = -g -Wall -ansi
 
-INCLUDE = -I.
-CLIB = -lpthread
+INCLUDE = -I./header/
 
-chatserver: ${OUTPUTF}main.o
-	${CC} ${CFLAGS} -o chatclient main.o ${CLIB}
+OUTPUTF = ./output/
+
+SRCF = ./src/
+
+BINF = ./bin/
+
+chatserver: ${OUTPUTF}main.o ${OUTPUTF}strutil.o
+	${CC} ${CFLAGS} -o ${BINF}chatclient ${OUTPUTF}main.o ${OUTPUTF}strutil.o
 
 #create all c to o
-%.o: %.c
+${OUTPUTF}%.o: ${SRCF}%.c
 	${CC} ${CFLAGS} ${INCLUDE} -c $< -o $@
 
 clean:
-	rm -rf *.o chatclient
+	rm -rf ${OUTPUTF}*.o ${BINF}chatclient
 	

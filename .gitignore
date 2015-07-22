@@ -1,4 +1,4 @@
-*.o
+output/*.o
 *.swp
 chatclient
 core
