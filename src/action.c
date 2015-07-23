@@ -4,6 +4,8 @@
 #include "menu.h"
 #include "strutil.h"
 #include "action.h"
+#include "logicutil.h"
+#include "protocol.h"
 
 size_t pl_size = sizeof(int) ;
 size_t protocol_size = sizeof(unsigned short) ;
@@ -19,11 +21,13 @@ void act_login()
 	
 	int shift_p = 0;
 	
-	memcpy(package, &package_len, pl_size) ;
+	int _net_package_len = int_to_net(package_len);
+	memcpy(package, &_net_package_len, pl_size) ;
 	shift_p += pl_size;
 	
-	unsigned short protocol = 1001;
-	memcpy(package+shift_p, &protocol, protocol_size);
+	unsigned short protocol = PTO_LOGIN;
+	unsigned short _net_protocol = htons(protocol);
+	memcpy(package+shift_p, &_net_protocol, protocol_size);
 	shift_p += protocol_size;
 
 	char account[200] = {'\0'};
