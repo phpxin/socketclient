@@ -13,12 +13,16 @@ static int print_menu();
 
 int clientSockFlag = 0;
 
+struct user my;
+
 int main(int argc, char *argv[])
 {
 	if(argc<3){
 		printf("usage chatclient {ip} {port} \n");
 		exit(EXIT_FAILURE);
 	}
+
+	my.id = 0;	/* init user */
 
 	const char *ip = argv[1];
 	const int port = atoi(argv[2]);
@@ -56,6 +60,9 @@ int main(int argc, char *argv[])
 			case MENU_TEST:
 				act_test();
 				break;
+			case MENU_MSG:
+				act_msg();
+				break;
 			default: /* MENU_ERR */
 				printf("enter error please retry .");
 				break;
@@ -76,6 +83,7 @@ static int print_menu()
 
 	printf("\tlogin : login system . \n");
 	printf("\ttest : run test . \n");
+	printf("\tmsg : send message . \n");
 	printf("\tquit : quit and break connection . \n\n");
 
 	printf("please enter menu item : ");
@@ -95,6 +103,10 @@ static int print_menu()
 	else if(strncmp(sbuff, "test", 4) == 0)
 	{
 		ret = MENU_TEST;
+	}
+	else if(strncmp(sbuff, "msg", 3) == 0)
+	{
+		ret = MENU_MSG;
 	}
 	else
 	{

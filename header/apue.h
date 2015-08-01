@@ -9,3 +9,5 @@
 #include <signal.h>
 #include <pthread.h>
 #include <sys/ioctl.h>
+
+#define BUFSIZE 1024
