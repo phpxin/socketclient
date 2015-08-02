@@ -8,3 +8,4 @@ struct user{
 void act_login();
 void act_test();
 void act_msg();
+void recv_msg();

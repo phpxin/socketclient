@@ -1,7 +1,7 @@
 all: chatserver
 
 CC = gcc
-CFLAGS = -g -Wall -ansi
+CFLAGS = -g -Wall -ansi -D_REENTRANT
 
 INCLUDE = -I./header/
 

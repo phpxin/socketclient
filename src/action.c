@@ -16,6 +16,56 @@ extern struct user my;
 
 static int msg_read(int fd, void **pkg, size_t *pkg_len);
 
+void recv_msg(){
+	void *rmsg = NULL;
+	size_t rmsg_len = 0;
+
+	msg_read(clientSockFlag, &rmsg, &rmsg_len);
+
+	/* 协议 + 状态 + 正文 */
+
+	int s_protocol = 0;
+	int s_flag = 0 ;
+
+
+	memcpy(&s_protocol, rmsg, protocol_size );
+	s_protocol = ntohs(s_protocol) ;
+
+	switch(s_protocol)
+	{
+		case PTO_RE_LOGIN:
+			memcpy(&s_flag, rmsg+protocol_size, flag_size );
+			s_flag = net_to_int(s_flag);
+			if(s_flag == 1){
+				memcpy(&my, rmsg+protocol_size+flag_size, rmsg_len-protocol_size-flag_size);
+				my.id = net_to_int(my.id);
+				printf("uid: %d, name: %s \n", my.id, my.name);
+			}else{
+				printf("登录失败！\n");
+			}
+			break;
+		case PTO_RE_MSG:
+			memcpy(&s_flag, rmsg+protocol_size, flag_size );
+			s_flag = net_to_int(s_flag);
+			if(s_flag == 1){
+				printf("发送成功！\n");
+			}else{
+				printf("发送失败！\n");
+			}
+			break;
+		case PTO_MSG:
+			break;
+		default:
+			printf("协议不正确 \n");
+			break;
+	}
+
+	if(rmsg != NULL){
+		free(rmsg);
+		rmsg = NULL;
+	}	
+}
+
 void act_msg()
 {
 	if(my.id<=0){
@@ -60,7 +110,8 @@ void act_msg()
 	/* send */
 
 	send(clientSockFlag, package, package_len, 0);
-	
+	free(package);
+	package = NULL;	
 }
 
 void act_login()
@@ -106,39 +157,7 @@ void act_login()
 	free(package);
 	package = NULL;
 
-	void *rmsg = NULL;
-	size_t rmsg_len = 0;
 
-	msg_read(clientSockFlag, &rmsg, &rmsg_len);
-
-	/* 协议 + 状态 + 正文 */
-
-	int s_protocol = 0;
-	int s_flag = 0 ;
-
-
-	memcpy(&s_protocol, rmsg, protocol_size );
-	memcpy(&s_flag, rmsg+protocol_size, flag_size );
-	
-	s_protocol = ntohs(s_protocol) ;
-	s_flag = net_to_int(s_flag);
-
-	if(s_protocol == PTO_LOGIN){
-		if(s_flag == 1){
-			memcpy(&my, rmsg+protocol_size+flag_size, rmsg_len-protocol_size-flag_size);
-			my.id = net_to_int(my.id);
-			printf("uid: %d, name: %s \n", my.id, my.name);
-		}else{
-			printf("登录错误！\n");
-		}
-	}else{
-		printf("协议不正确 \n");
-	}
-
-	if(rmsg != NULL){
-		free(rmsg);
-		rmsg = NULL;
-	}
 }
 
 static int msg_read(int fd, void **pkg, size_t *pkg_len)

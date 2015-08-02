@@ -8,18 +8,35 @@
 #include "menu.h"
 #include "strutil.h"
 #include "action.h"
+#include "pthread.h"
+#include "sys/epoll.h"
+
+#define MAX_EFDS 1	/* only test client readable */
 
 static int print_menu();
+static void *thread_func(void *udata);
+
+int ep_fd = -1 ;
+struct epoll_event *ep_ok = NULL;
 
 int clientSockFlag = 0;
 
 struct user my;
+
+pthread_t thread_c1;
 
 int main(int argc, char *argv[])
 {
 	if(argc<3){
 		printf("usage chatclient {ip} {port} \n");
 		exit(EXIT_FAILURE);
+	}
+	
+	int flag = pthread_create(&thread_c1, NULL, thread_func, NULL);
+	if(flag != 0)
+	{
+		printf("run child thread failed error num is %d", errno);
+		exit( -1 );
 	}
 
 	my.id = 0;	/* init user */
@@ -36,13 +53,27 @@ int main(int argc, char *argv[])
 
 	socklen_t serverSockLen = sizeof(serverAddr);
 
-	int flag = connect(clientSockFlag, (struct sockaddr *)&serverAddr, serverSockLen);
+	flag = connect(clientSockFlag, (struct sockaddr *)&serverAddr, serverSockLen);
 
 	if(flag<0){
 		perror("connect");
 		exit(EXIT_FAILURE);
 	}
+
+	ep_fd = epoll_create(5);
 	
+	struct epoll_event _event;
+	_event.data.fd = clientSockFlag;
+    _event.events = EPOLLIN ;
+
+	flag = epoll_ctl(ep_fd, EPOLL_CTL_ADD, clientSockFlag, &_event);
+    if (flag == -1) {
+		printf("epoll_ctl failed error num is %d", errno);
+		close(clientSockFlag);
+		close(ep_fd);
+        exit( -1 );
+    }
+
 	int menu = MENU_ERR;
 	int run = 1;
 
@@ -70,8 +101,29 @@ int main(int argc, char *argv[])
 	}
 
 	close(clientSockFlag);
+	close(ep_fd);
 
 	exit(EXIT_SUCCESS);
+}
+
+static void *thread_func(void *udata)
+{
+	ep_ok = (struct epoll_event *)calloc( MAX_EFDS, sizeof(struct epoll_event));
+	int i = 0;
+	while(1)
+	{
+		int isok = epoll_wait(ep_fd, ep_ok, 1, -1) ;
+		for( i=0; i<isok; i++)
+		{
+			if(ep_ok[i].events & EPOLLIN)
+			{
+				recv_msg();
+			}
+		}
+	}
+
+
+	pthread_exit( NULL );
 }
 
 static int print_menu()
