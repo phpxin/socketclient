@@ -27,17 +27,21 @@ void recv_msg(){
 	int s_protocol = 0;
 	int s_flag = 0 ;
 
-
 	memcpy(&s_protocol, rmsg, protocol_size );
 	s_protocol = ntohs(s_protocol) ;
+
+	rmsg_len -= protocol_size ;
+	memcpy(rmsg, rmsg+protocol_size, rmsg_len);
+
+	/* rmsg 以去掉 包长度字段+协议字段 */
 
 	switch(s_protocol)
 	{
 		case PTO_RE_LOGIN:
-			memcpy(&s_flag, rmsg+protocol_size, flag_size );
+			memcpy(&s_flag, rmsg, flag_size );
 			s_flag = net_to_int(s_flag);
 			if(s_flag == 1){
-				memcpy(&my, rmsg+protocol_size+flag_size, rmsg_len-protocol_size-flag_size);
+				memcpy(&my, rmsg+flag_size, rmsg_len-protocol_size-flag_size);
 				my.id = net_to_int(my.id);
 				printf("uid: %d, name: %s \n", my.id, my.name);
 			}else{
@@ -45,7 +49,7 @@ void recv_msg(){
 			}
 			break;
 		case PTO_RE_MSG:
-			memcpy(&s_flag, rmsg+protocol_size, flag_size );
+			memcpy(&s_flag, rmsg, flag_size );
 			s_flag = net_to_int(s_flag);
 			if(s_flag == 1){
 				printf("发送成功！\n");
@@ -54,6 +58,7 @@ void recv_msg(){
 			}
 			break;
 		case PTO_MSG:
+			act_user_message( rmsg, rmsg_len );
 			break;
 		default:
 			printf("协议不正确 \n");
@@ -64,6 +69,38 @@ void recv_msg(){
 		free(rmsg);
 		rmsg = NULL;
 	}	
+}
+
+void act_user_message(const void *rmsg, size_t rmsg_len)
+{
+	int uid = 0;
+	int fid = 0;
+	int len = 0;
+
+	size_t _k = sizeof(int) ;
+
+	memcpy(&uid, rmsg, _k);
+	memcpy(&fid, rmsg+_k, _k);
+	memcpy(&len, rmsg+_k*2, _k);
+
+	uid = net_to_int(uid);
+	fid = net_to_int(fid);
+	len = net_to_int(len);
+
+	/*
+	if(len > TEXT_SIZE_1-1){
+		ret.status = FAILED;
+		ret.tip = "message content to long, big then max";
+	}
+	*/
+
+	char content[len+10];
+	
+	memset(content, '\0', len+10);
+	memcpy(content, rmsg+_k*3, len);	
+
+
+	printf("recv message, uid %d : %s \n", uid, content);
 }
 
 void act_msg()
@@ -79,6 +116,10 @@ void act_msg()
 	fgets(content, 65534, stdin);
 	su_trim(content, "\n\r");
 
+	int friend = 0;
+	printf("enter friend id:");
+	scanf("%d", &friend);
+
 	int content_len = strlen(content)+1; /* conent+\0 */
 
 	int i_size = sizeof(int);
@@ -90,7 +131,7 @@ void act_msg()
 	int _package_len = int_to_net(package_len);
 	unsigned short protocol = htons(PTO_MSG);
 	int uid = int_to_net( my.id );
-	int fid = int_to_net( 100 );
+	int fid = int_to_net( friend );
 	int len = int_to_net( content_len );
 	
 	void *_package_cur = package;

@@ -8,7 +8,6 @@
 #include "menu.h"
 #include "strutil.h"
 #include "action.h"
-#include "pthread.h"
 #include "sys/epoll.h"
 
 #define MAX_EFDS 1	/* only test client readable */

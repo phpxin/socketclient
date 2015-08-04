@@ -1,4 +1,4 @@
-all: chatserver
+all: chatclient
 
 CC = gcc
 CFLAGS = -g -Wall -ansi -D_REENTRANT
@@ -11,8 +11,10 @@ SRCF = ./src/
 
 BINF = ./bin/
 
-chatserver: ${OUTPUTF}main.o ${OUTPUTF}strutil.o ${OUTPUTF}action.o ${OUTPUTF}logicutil.o
-	${CC} ${CFLAGS} -o ${BINF}chatclient ${OUTPUTF}main.o ${OUTPUTF}strutil.o ${OUTPUTF}action.o ${OUTPUTF}logicutil.o
+CLIB = -lpthread
+
+chatclient: ${OUTPUTF}main.o ${OUTPUTF}strutil.o ${OUTPUTF}action.o ${OUTPUTF}logicutil.o
+	${CC} ${CFLAGS} -o ${BINF}chatclient ${OUTPUTF}main.o ${OUTPUTF}strutil.o ${OUTPUTF}action.o ${OUTPUTF}logicutil.o ${CLIB}
 
 #create all c to o
 ${OUTPUTF}%.o: ${SRCF}%.c
