@@ -137,6 +137,13 @@ static int print_menu()
 	printf("\tmsg : send message . \n");
 	printf("\tquit : quit and break connection . \n\n");
 
+	if( my.id > 0 )
+	{
+		printf("My Info --- uid: %d, name: %s \n", my.id, my.name);
+	}else{
+		printf("No login !\n");
+	}
+
 	printf("please enter menu item : ");
 
 	char sbuff[1024] = {'\0'} ;
