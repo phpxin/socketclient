@@ -30,10 +30,14 @@ void recv_msg(){
 	memcpy(&s_protocol, rmsg, protocol_size );
 	s_protocol = ntohs(s_protocol) ;
 
-	rmsg_len -= protocol_size ;
-	memcpy(rmsg, rmsg+protocol_size, rmsg_len);
+    /* 去掉协议字段 */
+    void *tempmem = calloc(rmsg_len, sizeof(void));
+    memcpy(tempmem, rmsg+protocol_size, rmsg_len-protocol_size);
+    memset(rmsg, '\0', rmsg_len);
+	memcpy(rmsg, tempmem, rmsg_len-protocol_size);
+    free(tempmem);
 
-	/* rmsg 以去掉 包长度字段+协议字段 */
+	/* rmsg 已去掉 包长度字段+协议字段 */
 
 	switch(s_protocol)
 	{
@@ -244,8 +248,17 @@ static int msg_read(int fd, void **pkg, size_t *pkg_len)
 		return 0;
 	}
 
+
+    /* 去掉包长度字段 */
 	*pkg_len = readlen - pkg_ll;
-	memcpy(*pkg, *pkg+pkg_ll, *pkg_len);
+
+    void *tempmem = calloc(*pkg_len, sizeof(void));
+    memcpy(tempmem, *pkg+pkg_ll, *pkg_len);
+
+    memset(*pkg, '\0', readlen);
+	memcpy(*pkg, tempmem, *pkg_len);
+	
+    free(tempmem);
 	
 	return 1;
 }
