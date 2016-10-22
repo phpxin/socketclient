@@ -36,10 +36,12 @@ void recv_msg(){
     memset(rmsg, '\0', rmsg_len);
 	memcpy(rmsg, tempmem, rmsg_len-protocol_size);
 	
+	/*
 	if(tempmem!=NULL){
 		free(tempmem);
 		tempmem=NULL ;
 	}
+	*/
     
 
 	/* rmsg 已去掉 包长度字段+协议字段 */
@@ -73,11 +75,13 @@ void recv_msg(){
 			printf("协议不正确 \n");
 			break;
 	}
-
+	
+	/*
 	if(rmsg != NULL){
 		free(rmsg);
 		rmsg = NULL;
 	}	
+	*/
 }
 
 void act_user_message(const void *rmsg, size_t rmsg_len)
@@ -161,11 +165,12 @@ void act_msg()
 
 	send(clientSockFlag, package, package_len, 0);
 	
+	/*
 	if(package!=NULL){
 		free(package);
 		package = NULL;	
 	}
-	
+	*/
 }
 
 void act_login()
@@ -221,11 +226,12 @@ void act_login()
 
 	send(clientSockFlag, package, package_len, 0);
 	
+	/*
 	if(package!=NULL){
 		free(package);
 		package = NULL;	
 	}
-
+	*/
 
 
 }
@@ -283,11 +289,12 @@ static int msg_read(int fd, void **pkg, size_t *pkg_len)
     memset(*pkg, '\0', readlen);
 	memcpy(*pkg, tempmem, *pkg_len);
 	
+	/*
 	if(tempmem!=NULL){
 		free(tempmem);
 		tempmem = NULL;
 	}
-    
+	*/
 	
 	return 1;
 }

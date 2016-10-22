@@ -57,7 +57,7 @@ int su_rtrim(char *str, char *cs)
 		strcpy(str, _str);
 	}
 
-	free(_str);
+	/*free(_str);*/
 
 	return 1;
 
@@ -95,7 +95,7 @@ int su_ltrim(char *str, char *cs)
 		strcpy(str, _str);
 	}
 
-	free(_str);
+	/*free(_str);*/
 
 	return 1;
 }
