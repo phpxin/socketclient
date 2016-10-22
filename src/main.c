@@ -78,16 +78,10 @@ int main(int argc, char *argv[])
     _event.events = EPOLLIN ;
 	*/
 
-	client_ebase = event_base_new();  /* 创建一个 event 的描述符 */
 	
-	/* 连接注册为新事件 (EV_PERSIST为事件触发后不默认删除)   sizeof(struct event) */
-	struct event *pEvRead = (struct event *)malloc(1);
-	event_set(pEvRead, clientSockFlag, EV_READ|EV_PERSIST, onRead, pEvRead);
-	event_base_set(client_ebase, pEvRead);
-	event_add(pEvRead, NULL);
+	
 
-
-	flag = pthread_create(&thread_c1, NULL, thread_func, NULL);
+	flag = pthread_create(&thread_c1, NULL, thread_func, (void *)(&clientSockFlag));
 	if(flag != 0)
 	{
 		printf("run child thread failed error num is %d", errno);
@@ -160,16 +154,25 @@ static void *thread_func(void *udata)
 			}
 		}
 	}
-	*/
+	
 	signal(SIGKILL,sig_func);
+	*/
+	
+	
+	client_ebase = event_base_new();  /* 创建一个 event 的描述符 */
+	
+	/* 连接注册为新事件 (EV_PERSIST为事件触发后不默认删除)   sizeof(struct event) */
+	struct event *pEvRead = (struct event *)malloc(1);
+	event_set(pEvRead, *((int *)udata), EV_READ, onRead, NULL);
+	event_base_set(client_ebase, pEvRead);
+	event_add(pEvRead, NULL);
 	event_base_dispatch(client_ebase); /* 开始事件循环 */
 
-	while(1){
-
-	}
+	
 
 
-	pthread_exit( NULL );
+	/*pthread_exit( NULL );*/
+	return NULL;
 }
 
 static void sig_func(int signum)
