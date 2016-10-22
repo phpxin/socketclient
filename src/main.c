@@ -29,8 +29,6 @@ struct user my;
 
 pthread_t thread_c1;
 
-
-
 int main(int argc, char *argv[])
 {
 	if(argc<3){
@@ -80,13 +78,20 @@ int main(int argc, char *argv[])
 
 	
 	
-
 	flag = pthread_create(&thread_c1, NULL, thread_func, (void *)(&clientSockFlag));
+	
 	if(flag != 0)
 	{
 		printf("run child thread failed error num is %d", errno);
 		exit( -1 );
 	}
+	
+	/*
+	创建一个线程默认的状态是joinable, 如果一个线程结束运行但没有被join,则它的状态类似于进程中的Zombie Process,
+	即还有一部分资源没有被回收（退出状态码），所以创建线程者应该pthread_join来等待线程运行结束，
+	并可得到线程的退出代码，回收其资源（类似于wait,waitpid)
+	*/
+	pthread_detach(thread_c1);
 	
 
 	/*
@@ -157,15 +162,25 @@ static void *thread_func(void *udata)
 	
 	signal(SIGKILL,sig_func);
 	*/
+	
+	printf("socket client fd is %d \n", *((int *)udata));
+	
 	struct event_base* client_ebase;
 	
 	client_ebase = event_base_new();  /* 创建一个 event 的描述符 */
 	
 	/* 连接注册为新事件 (EV_PERSIST为事件触发后不默认删除)   sizeof(struct event) */
-	struct event *pEvRead = (struct event *)malloc(1);
-	event_set(pEvRead, *((int *)udata), EV_READ, onRead, NULL);
+	struct event *pEvRead = (struct event *)malloc( sizeof(struct event) );
+	event_set(pEvRead, *((int *)udata), EV_READ|EV_PERSIST, onRead, NULL);
+	/*event_set(pEvRead, clientSockFlag, EV_READ|EV_PERSIST, onRead, NULL);*/
 	event_base_set(client_ebase, pEvRead);
-	event_add(pEvRead, NULL);
+	int flag = event_add(pEvRead, NULL);
+	
+	if(flag == -1){
+		printf("event_add failed \n");
+		perror("event_add");
+	}
+	
 	event_base_dispatch(client_ebase); /* 开始事件循环 */
 
 	

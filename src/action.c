@@ -35,7 +35,12 @@ void recv_msg(){
     memcpy(tempmem, rmsg+protocol_size, rmsg_len-protocol_size);
     memset(rmsg, '\0', rmsg_len);
 	memcpy(rmsg, tempmem, rmsg_len-protocol_size);
-    free(tempmem);
+	
+	if(tempmem!=NULL){
+		free(tempmem);
+		tempmem=NULL ;
+	}
+    
 
 	/* rmsg 已去掉 包长度字段+协议字段 */
 
@@ -155,8 +160,12 @@ void act_msg()
 	/* send */
 
 	send(clientSockFlag, package, package_len, 0);
-	free(package);
-	package = NULL;	
+	
+	if(package!=NULL){
+		free(package);
+		package = NULL;	
+	}
+	
 }
 
 void act_login()
@@ -211,9 +220,12 @@ void act_login()
 	/* send */
 
 	send(clientSockFlag, package, package_len, 0);
+	
+	if(package!=NULL){
+		free(package);
+		package = NULL;	
+	}
 
-	free(package);
-	package = NULL;
 
 
 }
@@ -271,7 +283,11 @@ static int msg_read(int fd, void **pkg, size_t *pkg_len)
     memset(*pkg, '\0', readlen);
 	memcpy(*pkg, tempmem, *pkg_len);
 	
-    free(tempmem);
+	if(tempmem!=NULL){
+		free(tempmem);
+		tempmem = NULL;
+	}
+    
 	
 	return 1;
 }
