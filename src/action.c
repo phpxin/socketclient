@@ -161,7 +161,8 @@ void act_msg()
 
 void act_login()
 {
-	int package_len = pl_size + protocol_size + 200*2;
+	/* int package_len = pl_size + protocol_size + 200*2; */
+	int package_len = pl_size + protocol_size + 1024 ; /* 报文大小 */ 
 
 	void *package = malloc(package_len);
 	memset(package, '\0', package_len);
@@ -177,6 +178,8 @@ void act_login()
 	memcpy(package+shift_p, &_net_protocol, protocol_size);
 	shift_p += protocol_size;
 
+	/*
+
 	char account[200] = {'\0'};
 	char pwd[200] = {'\0'};
 	
@@ -189,11 +192,21 @@ void act_login()
 	su_trim(pwd, "\n\r");
 
 	printf("account: %s, password: %s, login ...\n", account, pwd);
-	
+
 	memcpy(package+shift_p, account, 200);
 	shift_p += 200;
 
 	memcpy(package+shift_p, pwd, 200);
+
+	*/
+
+	char authcode[1024] = {'\0'} ;
+
+	printf("please enter authcode:");
+	fgets(authcode, 1023, stdin);
+	su_trim(authcode, "\n\r");
+
+	memcpy(package+shift_p, authcode, 1024);
 
 	/* send */
 

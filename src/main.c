@@ -8,12 +8,17 @@
 #include "menu.h"
 #include "strutil.h"
 #include "action.h"
+/*
 #include "sys/epoll.h"
+*/
+#include <event.h>
 
 #define MAX_EFDS 1	/* only test client readable */
 
 static int print_menu();
 static void *thread_func(void *udata);
+void onRead(int client, short iEvent, void *arg) ;
+static void sig_func(int signum); /* 信号处理 */
 
 int ep_fd = -1 ;
 struct epoll_event *ep_ok = NULL;
@@ -24,19 +29,25 @@ struct user my;
 
 pthread_t thread_c1;
 
+struct event_base* client_ebase;
+
 int main(int argc, char *argv[])
 {
 	if(argc<3){
 		printf("usage chatclient {ip} {port} \n");
 		exit(EXIT_FAILURE);
 	}
+
+	int flag = 0 ;
 	
+	/*
 	int flag = pthread_create(&thread_c1, NULL, thread_func, NULL);
 	if(flag != 0)
 	{
 		printf("run child thread failed error num is %d", errno);
 		exit( -1 );
 	}
+	*/
 
 	my.id = 0;	/* init user */
 
@@ -59,12 +70,32 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	/*
 	ep_fd = epoll_create(5);
 	
 	struct epoll_event _event;
 	_event.data.fd = clientSockFlag;
     _event.events = EPOLLIN ;
+	*/
 
+	client_ebase = event_base_new();  /* 创建一个 event 的描述符 */
+	
+	/* 连接注册为新事件 (EV_PERSIST为事件触发后不默认删除)   sizeof(struct event) */
+	struct event *pEvRead = (struct event *)malloc(1);
+	event_set(pEvRead, clientSockFlag, EV_READ|EV_PERSIST, onRead, pEvRead);
+	event_base_set(client_ebase, pEvRead);
+	event_add(pEvRead, NULL);
+
+
+	flag = pthread_create(&thread_c1, NULL, thread_func, NULL);
+	if(flag != 0)
+	{
+		printf("run child thread failed error num is %d", errno);
+		exit( -1 );
+	}
+	
+
+	/*
 	flag = epoll_ctl(ep_fd, EPOLL_CTL_ADD, clientSockFlag, &_event);
     if (flag == -1) {
 		printf("epoll_ctl failed error num is %d", errno);
@@ -72,6 +103,7 @@ int main(int argc, char *argv[])
 		close(ep_fd);
         exit( -1 );
     }
+    */
 
 	int menu = MENU_ERR;
 	int run = 1;
@@ -100,13 +132,21 @@ int main(int argc, char *argv[])
 	}
 
 	close(clientSockFlag);
-	close(ep_fd);
+	/*close(ep_fd);*/
 
 	exit(EXIT_SUCCESS);
 }
 
+void onRead(int client, short iEvent, void *arg)
+{
+
+	recv_msg();
+}
+
 static void *thread_func(void *udata)
 {
+
+	/*
 	ep_ok = (struct epoll_event *)calloc( MAX_EFDS, sizeof(struct epoll_event));
 	int i = 0;
 	while(1)
@@ -120,9 +160,21 @@ static void *thread_func(void *udata)
 			}
 		}
 	}
+	*/
+	signal(SIGKILL,sig_func);
+	event_base_dispatch(client_ebase); /* 开始事件循环 */
+
+	while(1){
+
+	}
 
 
 	pthread_exit( NULL );
+}
+
+static void sig_func(int signum)
+{
+	printf("recv signal %d\n", signum);
 }
 
 static int print_menu()
