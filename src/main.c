@@ -29,7 +29,7 @@ struct user my;
 
 pthread_t thread_c1;
 
-struct event_base* client_ebase;
+
 
 int main(int argc, char *argv[])
 {
@@ -157,7 +157,7 @@ static void *thread_func(void *udata)
 	
 	signal(SIGKILL,sig_func);
 	*/
-	
+	struct event_base* client_ebase;
 	
 	client_ebase = event_base_new();  /* 创建一个 event 的描述符 */
 	
@@ -171,8 +171,8 @@ static void *thread_func(void *udata)
 	
 
 
-	/*pthread_exit( NULL );*/
-	return NULL;
+	pthread_exit( NULL );
+	
 }
 
 static void sig_func(int signum)
